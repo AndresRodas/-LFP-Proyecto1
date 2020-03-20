@@ -2,7 +2,7 @@ import sys
 import os
 
 from io import open
-
+  
 os.system ("cls")
 AFD = input("ingrese el nombre del AFD: ")
 Estados = ["jaja","jeje","jiji"]
