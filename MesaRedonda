@@ -1,0 +1,7 @@
+digraph {
+	y [label=S1]
+	x [label=S2]
+	z [label=S3]
+	y -> x
+	x -> z
+}
