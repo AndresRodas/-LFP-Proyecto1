@@ -4,6 +4,13 @@ import os
 from io import open
 from datetime import datetime
 
+ListaAFD = []
+Estados = ["S0","S1","S2"]
+Alfabetos = ["D", "L"]
+Estado_Inicial = {}
+Estado_Aceptacion = {}
+transiciones = []
+
 class Menu:
     def __init__(self):
        
@@ -19,6 +26,7 @@ class Menu:
             
 
     def inicio(self):
+        os.system ("cls")
         print("""
         Universidad de San Carlos de Guatemala
         Lenguajes Formales y de Programación
@@ -67,9 +75,66 @@ class Menu:
         print("Hasta la próxima")
         sys.exit(0)
 
+class Transicion:
+    def __init__(self):
+        self.simbolo = ''
+        self.destino = ''
+    def Simbolo(self, sim):
+        self.simbolo = sim
+    def Destino(self, dest):
+        self.destino = dest
+    def ToString(self):
+        print('\t Transicion: ')
+        print('\t \t Simbolo: ', self.simbolo)
+        print('\t \t Destino: ', self.destino)
+
+class Estado:
+    def __init__(self):
+        self.nombre = ''
+        self.transiciones = []
+        self.inicial = False
+        self.aceptacion = False
+    def Nombre(self,nombre):
+        self.nombre = nombre
+    def Transiciones(self, simbolo):
+        trans = Transicion()
+        trans.Simbolo(simbolo)
+        self.transiciones.append(trans)
+    def Inicial(self, ini):
+        self.inicial = ini
+    def Aceptacion(self, acep):
+        self.aceptacion = acep    
+    def ToString(self):
+        print('Estado: ')
+        print('\t Nombre: ', self.nombre)
+        print('\t Estado inicial: ', self.inicial)
+        print('\t Estado aceptacion: ', self.aceptacion)
+        for j in range(0,len(self.transiciones)):
+            self.transiciones[j].ToString()
+
+class Automata:
+    def __init__(self): 
+        self.nombre = ""   
+        self.estados = []
+        self.alfabeto = []
+    def Nombre(self, nombre):
+        self.nombre = nombre
+    def Alfabeto(self, alfabeto):
+        self.alfabeto.append(alfabeto)
+    def Estados(self, estados):
+        est = Estado()
+        est.Nombre(estados)
+        self.estados.append(est)
+    def ToString(self):
+        print('************************************')
+        print('Nombre: '+self.nombre)
+        print('Alfabeto: ',self.alfabeto)
+        for k in range(0,len(self.estados)):
+            self.estados[k].ToString()
+
 class AFD:
     def __init__(self):
-        self.nombre_afd = ""
+        self.afdtemp = ''
         self.opcion_afd = {
             "1" : self.ingresar_estados,
             "2" : self.ingresar_alfabeto,
@@ -81,7 +146,13 @@ class AFD:
         }
     def menu_afd(self):
         os.system ("cls") 
-        nombre_afd = input("Ingrese el nombre del AFD: ")
+        self.afd = Automata()
+        self.afdtemp = input("Ingrese el nombre del AFD: ")
+        self.afd.Nombre(self.afdtemp)
+        ListaAFD.append(self.afd)
+        
+        #Estado_Aceptacion.setdefault(self.afdtemp,[])
+
         os.system ("cls") 
         while True:
 
@@ -105,17 +176,130 @@ class AFD:
                 print("{0} no es una opción".format(eleccion))    
     
     def ingresar_estados(self):
-        print("ingresar estados")
+        #Ingresar Estados
+        estado = input("Ingrese estado: ")
+        if len(Estados) != 0:           
+                contador = 0
+                for k in range(0,len(Estados)):
+                        if estado == Estados[k]:
+                                contador = contador + 1
+                for i in range(0,len(Alfabetos)):
+                        if estado == Alfabetos[i]:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El estado ya existe o es parte del alfabeto!")
+                elif contador == 0:
+                        print("El estado se ha ingresado!")
+                        Estados.append(estado)
+        else:
+                Estados.append(estado)                        
+        print(Estados)
+
     def ingresar_alfabeto(self):
-        print("ingresar alfabeto")
+        #Ingresar alfabeto
+        alfabeto = input("Ingrese alfabeto: ")
+        if len(Alfabetos) != 0:           
+                contador = 0
+                for k in range(0,len(Estados)):
+                        if alfabeto == Estados[k]:
+                                contador = contador + 1
+                for i in range(0,len(Alfabetos)):
+                        if alfabeto == Alfabetos[i]:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El alfabeto ya existe o es parte de los Estados!")
+                elif contador == 0:
+                        print("El alfabeto se ha ingresado!")
+                        Alfabetos.append(alfabeto)
+        else:
+                Alfabetos.append(alfabeto)                                
+        print(Alfabetos)
+
     def estado_inicial(self):
-        print("estado inicial")
+        #Estado inicial
+        print("Estados: ")
+        print(Estados)
+        inicial = input("Ingrese estado inicial: ")
+        verificador = 0
+        for k in range(0,len(Estados)):
+                if inicial == Estados[k]:
+                        verificador = verificador + 1
+        if verificador > 0:
+                print("Estado inicial agregado")
+                dic_temporal = {self.afdtemp:inicial}
+                Estado_Inicial.update(dic_temporal)
+        else:
+                print("El estado ingresado no existe!")
+        print(Estado_Inicial)
+
     def estado_aceptacion(self):
-        print("estado aceptacion")
+        #Estado de aceptacion
+        print("Estados: ")
+        print(Estados)
+        aceptacion = input("Ingrese estado de aceptación: ")
+        verificador = 0
+        for k in range(0,len(Estados)):
+                if aceptacion == Estados[k]:
+                        verificador = verificador + 1
+        if verificador > 0:
+                print("Estado de aceptación agregado")
+                Estado_Aceptacion.get(self.afdtemp).append(aceptacion)
+        else:
+                print("El estado ingresado no existe!")
+        print(Estado_Aceptacion)
+
     def transiciones(self):
-        print("transiciones")
+        os.system ("cls") 
+        print("""
+                Modos de Transicion: 
+                 
+                1) Modo 1
+                2) Modo 2
+            
+            """)
+        Modo = input("Seleccione una opción: ")
+        if Modo == str(1):
+            #Modo 1
+            transicion_temporal = input("Ingrese la transición de la forma A,B;0: ")
+            trans = transicion_temporal.split(';')
+            est = trans[0].split(',')
+            contador = 0
+            for k in range(0,len(Estados)):
+                if est[0] == Estados[k]:
+                    contador = contador + 1
+                if est[1] == Estados[k]:
+                    contador = contador + 1
+            for i in range(0,len(Alfabetos)):
+                if trans[1] == Alfabetos[i]:
+                    contador = contador + 1
+            for j in range(0,len(transiciones)):
+                #if est[0] == transiciones[j].split(',')[0] and trans[1] == transiciones[j].split(';')[1]:
+                if transicion_temporal == transiciones[j] or trans[1] == 'epsilon':
+                    contador = contador - 1
+                    print('Esto solo es posible con un AFN')
+            if contador == 3:
+                print('La cadena es valida! los datos se han guardado')
+                transiciones.append(transicion_temporal)
+                print(transiciones)
+            elif contador < 3:
+                print('La cadena es invalida!')
+
+        elif Modo == str(2):
+            #Modo 2
+            print("Ingrese la transición de la forma [A,B,C]: ")
+
+        else:
+            print('Opcion invalida')        
+
     def ayuda(self):
         print("ayuda")
+        for x in ListaAFD:
+            print(x.ToString())
+        print(Estados)
+        print(Alfabetos)
+        print(Estado_Inicial)
+        print(Estado_Aceptacion)
+        print(transiciones)
     def back(self):
         os.system ("cls")
         Menu().run()   
@@ -307,7 +491,6 @@ class Reportes:
     def back(self):
         os.system ("cls")
         Menu().run()
-
 
 if __name__ == "__main__":
     Menu().inicio()
