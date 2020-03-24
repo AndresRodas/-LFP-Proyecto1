@@ -5,6 +5,7 @@ from io import open
 from datetime import datetime
 
 ListaAFD = []
+ListaGramatica = []
 
 class Menu:
     def __init__(self):
@@ -36,7 +37,7 @@ class Menu:
     def menu_afd(self):
         AFD().menu_afd()
     def menu_gramatica(self):
-        Gramatica().menu_gramatica()
+        MenuGramatica().menu_gramatica()
     def menu_cadenas(self):
         Cadenas().menu_cadenas()
     def menu_cargar(self):
@@ -296,25 +297,53 @@ class AFD:
         print("ayuda")
         for x in ListaAFD:
             print(x.ToString())
+
     def back(self):
         os.system ("cls")
         Menu().run()   
 
-class Gramatica:
+class Gramatica():
     def __init__(self):
-        nombre_gramatica = ""
+        self.nombre = ''
+        self.no_terminales = []
+        self.terminales = []
+        self.nt_inicial = ''
+        self.producciones = []
+    def Nombre(self,nombre):
+        self.nombre = nombre
+    def NoTerminales(self, nt):
+        self.no_terminales.append(nt)
+    def Terminales(self, te):
+        self.terminales.append(te)
+    def NtInicial(self, nt):
+        self.nt_inicial = nt
+    def Producciones(self, prod):
+        self.producciones.append(prod)
+    def ToString(self):
+        print('Nombre: '+self.nombre)
+        print('No terminales: ',self.no_terminales)
+        print('Terminales: ',self.terminales)
+        print('No terminal inicial: '+self.nt_inicial)
+        print('Producciones: ', self.producciones)
+
+class MenuGramatica:
+    def __init__(self):
+        self.nombre_gramatica = ""
         self.opcion_gramatica = {
             "1" : self.NT,
             "2" : self.T,
             "3" : self.NT_inicial,
-            "4" : self.producciones,
-            "5" : self.transformada,
+            "4" : self.Producciones,
+            "5" : self.Transformada,
             "6" : self.ayuda,
             "7" : self.back           
         }
     def menu_gramatica(self):
         os.system ("cls") 
+        self.gram = Gramatica()
         nombre_gramatica = input("Ingrese el nombre de la gramática: ")
+        self.gram.Nombre(nombre_gramatica)
+        ListaGramatica.append(self.gram)
         os.system ("cls") 
         while True:
             print("""
@@ -336,18 +365,126 @@ class Gramatica:
                 accion()
             else:
                 print("{0} no es una opción".format(eleccion))
+    
     def NT(self):
-        print("NT")
+        #Ingresar NT
+        nt = input("Ingrese no terminal: ")
+        if len(self.gram.no_terminales) != 0:           
+                contador = 0
+                for k in self.gram.no_terminales:
+                        if nt == k:
+                                contador = contador + 1
+                for i in self.gram.terminales:
+                        if nt == i:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El no terminal ya existe!")
+                        self.NT()
+                elif contador == 0 and nt.isupper():
+                        print("El no terminal se ha ingresado!")
+                        self.gram.NoTerminales(nt)
+                else:
+                    print("El no terminal debe estar en mayusculas")
+                    self.NT()
+        elif nt.isupper():
+            print("El no terminal se ha ingresado!")
+            self.gram.NoTerminales(nt)
+        else:
+            print("El no terminal debe estar en mayusculas")
+            self.NT()
+        
     def T(self):
-        print("T")
+        #Ingresar T
+        t = input("Ingrese terminal: ")
+        if len(self.gram.terminales) != 0:           
+                contador = 0
+                for k in self.gram.terminales:
+                        if t == k:
+                                contador = contador + 1
+                for i in self.gram.no_terminales:
+                        if t == i:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El terminal ya existe!")
+                        self.T()
+                elif contador == 0 and t.islower():
+                        print("El terminal se ha ingresado!")
+                        self.gram.Terminales(t)
+                else: 
+                    print("El terminal debe estar en minusculas")
+                    self.T()
+        elif t.islower():
+            print("El terminal se ha ingresado!")
+            self.gram.Terminales(t)
+        else:
+            print("El terminal debe estar en minusculas")
+            self.T()
+
     def NT_inicial(self):
-        print("NT inicial")
-    def producciones(self):
-        print("Producciones")
-    def transformada(self):
-        print("transformada")
+        print('No terminales: ')
+        for x in self.gram.no_terminales:
+            print(x) 
+        nt_i = input('Ingrese no terminal inicial: ')
+        contador = 0
+        for x in self.gram.no_terminales:
+            if nt_i == x:
+                contador = contador + 1
+        if contador > 0:
+            self.gram.nt_inicial = nt_i
+            print("El no terminal inicial se ha ingresado!")
+        else:
+            print('El termino no existe en los no terminales!')
+            self.NT_inicial()
+
+    def Producciones(self):
+        gramatica_temporal = []
+        gramatica_temporal.extend(self.gram.no_terminales)
+        gramatica_temporal.extend(self.gram.terminales)
+        produccion_temporal = input('Ingrese la producción: ')
+        for x in self.gram.producciones:
+            if produccion_temporal == x:
+                print('La producción ya ha sido ingresada, intente con otra... \p')
+                self.Producciones()
+
+        lista_pt = produccion_temporal.split(' > ')
+        lista_d = lista_pt[1].split(' ')
+        estado = 0
+        
+        if len(self.gram.producciones) == 0:
+            if lista_pt[0] == self.gram.nt_inicial:
+                estado = estado + 1
+            for k in lista_d:
+                for x in gramatica_temporal:
+                    if k == x:
+                        estado = estado + 1      
+            if estado == (len(lista_d)+1):
+                self.gram.Producciones(produccion_temporal)
+                print('Produccion agregada correctamente')
+            else:
+                print('Producción inválida, intente nuevamente...')
+                self.Producciones()
+        else: 
+            #comprobar que este en las producciones no terminales
+            for y in self.gram.no_terminales:
+                if lista_pt[0] == y:
+                    estado = estado + 1
+            for k in lista_d:
+                for x in gramatica_temporal:
+                    if k == x:
+                        estado = estado + 1      
+            if estado == (len(lista_d)+1):
+                self.gram.Producciones(produccion_temporal)
+                print('Produccion agregada correctamente')
+            else:
+                print('Producción inválida, intente nuevamente...')
+                self.Producciones()
+        
+    def Transformada(self):
+        for x in self.gram.producciones:
+            print(x)
     def ayuda(self):
-        print("ayuda")
+        for x in ListaGramatica:
+            print(x.ToString())
     def back(self):
         os.system ("cls")
         Menu().run()      
