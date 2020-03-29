@@ -5,6 +5,11 @@ from io import open
 from datetime import datetime
 
 ListaAFD = []
+<<<<<<< Updated upstream
+=======
+ListaGramatica = []
+GramaticaRecursivadad = []
+>>>>>>> Stashed changes
 
 class Menu:
     def __init__(self):
@@ -128,6 +133,7 @@ class Automata:
             self.estados[k].ToString()
 
 class AFD:
+    
     def __init__(self):
         self.afdtemp = ''
         self.opcion_afd = {
@@ -139,6 +145,7 @@ class AFD:
             "6" : self.ayuda,
             "7" : self.back
         }
+    
     def menu_afd(self):
         os.system ("cls") 
         self.afd = Automata()
@@ -300,7 +307,40 @@ class AFD:
         os.system ("cls")
         Menu().run()   
 
+<<<<<<< Updated upstream
 class Gramatica:
+=======
+class Gramatica():
+    def __init__(self):
+        self.nombre = ''
+        self.no_terminales = []
+        self.terminales = []
+        self.nt_inicial = ''
+        self.producciones = []
+        self.prod_sin_rec = []
+    def Nombre(self,nombre):
+        self.nombre = nombre
+    def NoTerminales(self, nt):
+        self.no_terminales.append(nt)
+    def Terminales(self, te):
+        self.terminales.append(te)
+    def NtInicial(self, nt):
+        self.nt_inicial = nt
+    def Producciones(self, prod):
+        self.producciones.append(prod)
+    def Prod_sin_rec(self, p):
+        self.prod_sin_rec.append(p)
+    def ToString(self):
+        print('Nombre: '+self.nombre)
+        print('No terminales: ',self.no_terminales)
+        print('Terminales: ',self.terminales)
+        print('No terminal inicial: '+self.nt_inicial)
+        print('Producciones: ', self.producciones)
+        print('Sin recursividad por izquierda: ', self.prod_sin_rec)
+
+class MenuGramatica:
+
+>>>>>>> Stashed changes
     def __init__(self):
         nombre_gramatica = ""
         self.opcion_gramatica = {
@@ -312,6 +352,7 @@ class Gramatica:
             "6" : self.ayuda,
             "7" : self.back           
         }
+    
     def menu_gramatica(self):
         os.system ("cls") 
         nombre_gramatica = input("Ingrese el nombre de la gramática: ")
@@ -339,6 +380,7 @@ class Gramatica:
     def NT(self):
         print("NT")
     def T(self):
+<<<<<<< Updated upstream
         print("T")
     def NT_inicial(self):
         print("NT inicial")
@@ -351,6 +393,219 @@ class Gramatica:
     def back(self):
         os.system ("cls")
         Menu().run()      
+=======
+        #Ingresar T
+        t = input("Ingrese terminal: ")
+        if len(self.gram.terminales) != 0:           
+                contador = 0
+                for k in self.gram.terminales:
+                        if t == k:
+                                contador = contador + 1
+                for i in self.gram.no_terminales:
+                        if t == i:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El terminal ya existe!")
+                        self.T()
+                elif contador == 0 and (t.islower() or t.isnumeric()):
+                        print("El terminal se ha ingresado!")
+                        self.gram.Terminales(t)
+                else: 
+                    print("El terminal debe estar en minusculas")
+                    self.T()
+        elif t.islower():
+            print("El terminal se ha ingresado!")
+            self.gram.Terminales(t)
+        else:
+            print("El terminal debe estar en minusculas")
+            self.T()
+
+    def NT_inicial(self):
+        print('No terminales: ')
+        for x in self.gram.no_terminales:
+            print(x) 
+        nt_i = input('Ingrese no terminal inicial: ')
+        contador = 0
+        for x in self.gram.no_terminales:
+            if nt_i == x:
+                contador = contador + 1
+        if contador > 0:
+            self.gram.nt_inicial = nt_i
+            print("El no terminal inicial se ha ingresado!")
+        else:
+            print('El termino no existe en los no terminales!')
+            self.NT_inicial()
+
+    def Producciones(self):
+        gramatica_temporal = []
+        gramatica_temporal.extend(self.gram.no_terminales)
+        gramatica_temporal.extend(self.gram.terminales)
+        produccion_temporal = input('Ingrese la producción: ')
+        estado = 0
+        for x in range(0,len(self.gram.producciones)):
+            if produccion_temporal.split('>')[0] == self.gram.producciones[x].split('>')[0]:
+                self.AgregarOr(gramatica_temporal, produccion_temporal, x)
+                estado = estado + 1
+        if estado == 0:
+            self.AgregarProd(gramatica_temporal, produccion_temporal)
+
+    def Transformada(self):
+        self.gram.prod_sin_rec = self.gram.producciones[:]
+        estado = True
+        #recorre las producciones de la gramatica
+        for z in self.gram.producciones:
+            prod_temp = z.split('>')[1].split(' | ')
+            for n in prod_temp:
+                #comprueba si tiene recursividad
+                if n.split(' ')[0] == z.split('>')[0]:
+                    self.Sustituir_Prod(z)
+                    estado = False
+                    break
+        #si: no tiene recursividad por la izquierda...
+        if estado:
+            print('La gramática no tiene recursividad por la izquierda!')
+            for x in self.gram.producciones:
+                print(x)
+        else:
+            print('Gramática original: ')
+            for z in self.gram.producciones:
+                print(z)
+            print('Gramática transformada: ')
+            for y in self.gram.prod_sin_rec:
+                print(y)
+
+    def ayuda(self):
+        for x in ListaGramatica:
+            print(x.ToString())
+    
+    def back(self):
+        os.system ("cls")
+        Menu().run()    
+    
+    def AgregarOr(self, gt, pt, num):
+        try: 
+            lista_pt = pt.split('>')
+            lista_d = lista_pt[1].split(' ')
+            estado = 0
+            for y in self.gram.no_terminales:
+                if lista_pt[0] == y:
+                    estado = estado + 1
+            for k in lista_d:
+                for x in gt:
+                    if k == x:
+                        estado = estado + 1
+                if k == '|':
+                        estado = estado + 1  
+                if k == 'epsilon':
+                    estado = estado + 1 
+            for x in self.gram.producciones:
+                if pt == x:
+                    print('La producción ya ha sido ingresada!')
+                    estado = estado - 1 
+            if estado == (len(lista_d)+1):
+                self.gram.producciones[num] = self.gram.producciones[num] + ' | ' + pt.split('>')[1]
+                print('Produccion agregada correctamente')
+            else:
+                print('Producción inválida, intente nuevamente...')
+                self.Producciones()
+                
+        except IndexError: 
+            print('La entrada no es valida!!')
+            
+    def AgregarProd(self, gt, pt):
+        try: 
+            lista_pt = pt.split('>')
+            lista_d = lista_pt[1].split(' ')
+            estado = 0
+            if len(self.gram.producciones) == 0:
+                if lista_pt[0] == self.gram.nt_inicial:
+                    estado = estado + 1
+                for k in lista_d:
+                    for x in gt:
+                        if k == x:
+                            estado = estado + 1
+                    if k == '|':
+                        estado = estado + 1
+                    if k == 'epsilon':
+                        estado = estado + 1
+                if estado == (len(lista_d)+1):
+                    self.gram.Producciones(pt)
+                    print('Produccion agregada correctamente')
+                else:
+                    print('Producción inválida, intente nuevamente...')
+                    self.Producciones()
+            else: 
+                for y in self.gram.no_terminales:
+                    if lista_pt[0] == y:
+                        estado = estado + 1
+                for k in lista_d:
+                    for x in gt:
+                        if k == x:
+                            estado = estado + 1
+                    if k == '|':
+                            estado = estado + 1  
+                    if k == 'epsilon':
+                        estado = estado + 1 
+                for x in self.gram.producciones:
+                    if pt == x:
+                        print('La producción ya ha sido ingresada!')
+                        estado = estado - 1 
+                if estado == (len(lista_d)+1):
+                    self.gram.Producciones(pt)
+                    print('Produccion agregada correctamente')
+                else:
+                    print('Producción inválida, intente nuevamente...')
+                    self.Producciones()
+        except IndexError: 
+            print('La entrada no es valida!!')        
+
+    def Sustituir_Prod(self, x):
+        produc = x.split('>')[1].split(' | ')
+        nt_comparador = x.split('>')[0]
+        comp_prima = nt_comparador+"P"
+        partes_no_rec = []
+        partes_rec = []
+        #ciclo que recorre las partes derechas de las producciones
+        for n in produc:
+            div_espacios = n.split(' ')
+            if div_espacios[0] == nt_comparador:
+                #agrega partes recursivas
+                partes_rec.append(div_espacios[1])
+            else:
+                #agrega partes no recursivas
+                partes_no_rec.append(n)
+    
+        #produce la primera produccion sin recursividad por la izquierda
+        first_cadena = nt_comparador+'>'
+        for m in range(0,len(partes_no_rec)):
+            if m == len(partes_no_rec)-1:
+                first_cadena = first_cadena + partes_no_rec[m] + ' ' + comp_prima
+            else:
+                first_cadena = first_cadena + partes_no_rec[m] + ' ' + comp_prima + ' | '
+
+        #produce la segunda produccion sin recursividad por la izquierda
+        second_cadena = comp_prima+'>'
+        for o in range(0,len(partes_rec)):
+            if o == len(partes_rec)-1:
+                second_cadena = second_cadena + partes_rec[o] + ' ' + comp_prima + ' | epsilon'
+            else:
+                second_cadena = second_cadena + partes_rec[o] + ' ' + comp_prima + ' | '
+
+        #llenado la gramatica con las nuevas producciones
+        for p in range(0,len(self.gram.prod_sin_rec)):
+            if x == self.gram.prod_sin_rec[p]:
+                self.gram.prod_sin_rec.pop(p)
+                self.gram.prod_sin_rec.insert(p, second_cadena)
+                self.gram.prod_sin_rec.insert(p, first_cadena)
+                
+    def ComprobarOr():
+        for x in self.gram.producciones:
+            v = x.split(' ')
+            for y in v:
+                if y == '|':
+                    return True
+        
+>>>>>>> Stashed changes
 
 class Cadenas:
     def __init__(self):
