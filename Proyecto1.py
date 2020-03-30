@@ -5,11 +5,8 @@ from io import open
 from datetime import datetime
 
 ListaAFD = []
-<<<<<<< Updated upstream
-=======
 ListaGramatica = []
 GramaticaRecursivadad = []
->>>>>>> Stashed changes
 
 class Menu:
     def __init__(self):
@@ -41,7 +38,7 @@ class Menu:
     def menu_afd(self):
         AFD().menu_afd()
     def menu_gramatica(self):
-        Gramatica().menu_gramatica()
+        MenuGramatica().menu_gramatica()
     def menu_cadenas(self):
         Cadenas().menu_cadenas()
     def menu_cargar(self):
@@ -148,10 +145,19 @@ class AFD:
     
     def menu_afd(self):
         os.system ("cls") 
-        self.afd = Automata()
         self.afdtemp = input("Ingrese el nombre del AFD: ")
-        self.afd.Nombre(self.afdtemp)
-        ListaAFD.append(self.afd)
+
+        #Comprobar si ya existe para modificar o crear.
+        estado = True
+        for x in ListaAFD:
+            if x.nombre == self.afdtemp:
+                estado = False
+                self.afd = x
+        if estado:
+            self.afd = Automata()
+            self.afd.Nombre(self.afdtemp)
+            ListaAFD.append(self.afd)
+
         os.system ("cls") 
         while True:
 
@@ -260,38 +266,69 @@ class AFD:
         Modo = input("Seleccione una opción: ")
         if Modo == str(1):
             #Modo 1
-            pos = 0
-            transicion_temporal = input("Ingrese la transición de la forma A,B;0: ")
-            trans = transicion_temporal.split(';')
-            est = trans[0].split(',')
-            contador = 0
-            for k in range(0,len(self.afd.estados)):
-                if est[0] == self.afd.estados[k].nombre:
-                    contador = contador + 1
-                    pos = k
-                if est[1] == self.afd.estados[k].nombre:
-                    contador = contador + 1
-            for i in range(0,len(self.afd.alfabeto)):
-                if trans[1] == self.afd.alfabeto[i]:
-                    contador = contador + 1
+            try:
+                pos = 0
+                transicion_temporal = input("Ingrese la transición de la forma A,B;0: ")
+                trans = transicion_temporal.split(';')
+                est = trans[0].split(',')
+                contador = 0
+                for k in range(0,len(self.afd.estados)):
+                    if est[0] == self.afd.estados[k].nombre:
+                        contador = contador + 1
+                        pos = k
+                    if est[1] == self.afd.estados[k].nombre:
+                        contador = contador + 1
+                for i in range(0,len(self.afd.alfabeto)):
+                    if trans[1] == self.afd.alfabeto[i]:
+                        contador = contador + 1
 
-            for x in self.afd.estados:
-                for y in x.transiciones:
-                    if (y.simbolo == trans[1] and y.destino == est[1]) or trans[1] == 'epsilon':
-                        contador = contador - 1
-                        print('Esto solo es posible con un AFN')      
+                for x in self.afd.estados:
+                    for y in x.transiciones:
+                        if (y.simbolo == trans[1] and y.destino == est[1]) or trans[1] == 'epsilon':
+                            contador = contador - 1
+                            print('Esto solo es posible con un AFN')      
 
-            if contador == 3:
-                self.afd.estados[pos].Transiciones(trans[1],est[1])
-                
-                print('La cadena es valida! los datos se han guardado')
+                if contador == 3:
+                    self.afd.estados[pos].Transiciones(trans[1],est[1])
+                    
+                    print('La cadena es valida! los datos se han guardado')
 
-            elif contador < 3:
+                elif contador < 3:
+                    print('La cadena es invalida!')
+            except IndexError:
                 print('La cadena es invalida!')
-
+                
         elif Modo == str(2):
             #Modo 2
-            print("Ingrese la transición de la forma [A,B,C]: ")
+            columnas = input('Ingrese: [terminales]:  ')
+            filas = input('Ingrese: [no terminales]:  ')
+            simbolos = input('Ingrese: [simbolos destino]:  ')
+
+            try:
+
+                #recorrer filas (estados) para ingresar a ellos
+                estados_temporales = filas.split('[')[1].split(']')[0].split(',')
+                simbolo_temporal = columnas.split('[')[1].split(']')[0].split(',')
+                destino_temporal = simbolos.split('[')[1].split(']')[0].split(';')
+                for e in range(0,len(self.afd.estados)):
+                    for t in range(0,len(estados_temporales)):
+                        #se ingresa a un estado igual
+                        if self.afd.estados[e].nombre == estados_temporales[t]:
+                            for s in range(0,len(simbolo_temporal)):
+                                estado = False
+                                for c in self.afd.alfabeto:
+                                    if c == simbolo_temporal[s]:
+                                        estado = True
+                                if estado:
+                                    #se agregan las transiciones con destino y simbolo.
+                                    dt = destino_temporal[t].split(',')[s]
+                                    if dt != '-':
+                                        self.afd.estados[e].Transiciones(simbolo_temporal[s], dt)
+                                        print('Transicion ingresada correctamente')
+                                else:
+                                    print('Datos incorrectos!')
+            except IndexError:
+                print('Datos incorrectos!')
 
         else:
             print('Opcion invalida')        
@@ -303,14 +340,12 @@ class AFD:
         print("ayuda")
         for x in ListaAFD:
             print(x.ToString())
+
     def back(self):
         os.system ("cls")
         Menu().run()   
 
-<<<<<<< Updated upstream
 class Gramatica:
-=======
-class Gramatica():
     def __init__(self):
         self.nombre = ''
         self.no_terminales = []
@@ -340,22 +375,33 @@ class Gramatica():
 
 class MenuGramatica:
 
->>>>>>> Stashed changes
     def __init__(self):
-        nombre_gramatica = ""
+        self.nombre_gramatica = ""
         self.opcion_gramatica = {
             "1" : self.NT,
             "2" : self.T,
             "3" : self.NT_inicial,
-            "4" : self.producciones,
-            "5" : self.transformada,
+            "4" : self.Producciones,
+            "5" : self.Transformada,
             "6" : self.ayuda,
             "7" : self.back           
         }
     
     def menu_gramatica(self):
         os.system ("cls") 
-        nombre_gramatica = input("Ingrese el nombre de la gramática: ")
+        self.nombre_gramatica = input("Ingrese el nombre de la gramática: ")
+
+        #Comprobar si ya existe para modificar o crear.
+        estado = True
+        for x in ListaGramatica:
+            if x.nombre == self.nombre_gramatica:
+                estado = False
+                self.gram = x     
+        if estado:
+            self.gram = Gramatica()
+            self.gram.Nombre(self.nombre_gramatica)
+            ListaGramatica.append(self.gram)
+
         os.system ("cls") 
         while True:
             print("""
@@ -377,23 +423,35 @@ class MenuGramatica:
                 accion()
             else:
                 print("{0} no es una opción".format(eleccion))
+    
     def NT(self):
-        print("NT")
+        #Ingresar NT
+        nt = input("Ingrese no terminal: ")
+        if len(self.gram.no_terminales) != 0:           
+                contador = 0
+                for k in self.gram.no_terminales:
+                        if nt == k:
+                                contador = contador + 1
+                for i in self.gram.terminales:
+                        if nt == i:
+                                contador = contador + 1
+                if contador > 0:
+                        print("El no terminal ya existe!")
+                        self.NT()
+                elif contador == 0 and nt.isupper():
+                        print("El no terminal se ha ingresado!")
+                        self.gram.NoTerminales(nt)
+                else:
+                    print("El no terminal debe estar en mayusculas")
+                    self.NT()
+        elif nt.isupper():
+            print("El no terminal se ha ingresado!")
+            self.gram.NoTerminales(nt)
+        else:
+            print("El no terminal debe estar en mayusculas")
+            self.NT()
+        
     def T(self):
-<<<<<<< Updated upstream
-        print("T")
-    def NT_inicial(self):
-        print("NT inicial")
-    def producciones(self):
-        print("Producciones")
-    def transformada(self):
-        print("transformada")
-    def ayuda(self):
-        print("ayuda")
-    def back(self):
-        os.system ("cls")
-        Menu().run()      
-=======
         #Ingresar T
         t = input("Ingrese terminal: ")
         if len(self.gram.terminales) != 0:           
@@ -570,7 +628,7 @@ class MenuGramatica:
             div_espacios = n.split(' ')
             if div_espacios[0] == nt_comparador:
                 #agrega partes recursivas
-                partes_rec.append(div_espacios[1])
+                partes_rec.append(n.split(f'{nt_comparador} ')[1])
             else:
                 #agrega partes no recursivas
                 partes_no_rec.append(n)
@@ -605,8 +663,6 @@ class MenuGramatica:
                 if y == '|':
                     return True
         
->>>>>>> Stashed changes
-
 class Cadenas:
     def __init__(self):
         nombre_cadena = ""
