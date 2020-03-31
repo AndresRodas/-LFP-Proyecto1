@@ -47,6 +47,7 @@ class Menu:
         Reportes().menu_reportes()
     def Save(self):
         Guardar().save()
+    
     def run(self): 
         while True:
             print("""
@@ -114,6 +115,7 @@ class Automata:
         self.nombre = ""   
         self.estados = []
         self.alfabeto = []
+        self.gram = []
     def Nombre(self, nombre):
         self.nombre = nombre
     def Alfabeto(self, alfabeto):
@@ -122,12 +124,14 @@ class Automata:
         est = Estado()
         est.Nombre(estados)
         self.estados.append(est)
+    def Gramatica(self, gramatica):
+        self.gram.append(gramatica)
     def ToString(self):
         print('************************************')
         print('Nombre: '+self.nombre)
         print('Alfabeto: ',self.alfabeto)
-        for k in range(0,len(self.estados)):
-            self.estados[k].ToString()
+        for k in self.estados:
+            k.ToString()
 
 class AFD:
     
@@ -284,7 +288,7 @@ class AFD:
 
                 for x in self.afd.estados:
                     for y in x.transiciones:
-                        if (y.simbolo == trans[1] and y.destino == est[1]) or trans[1] == 'epsilon':
+                        if (y.simbolo == trans[1] and y.destino == est[1] and x.nombre == est[0]) or trans[1] == 'epsilon':
                             contador = contador - 1
                             print('Esto solo es posible con un AFN')      
 
@@ -353,6 +357,7 @@ class Gramatica:
         self.nt_inicial = ''
         self.producciones = []
         self.prod_sin_rec = []
+        self.afd = Automata()
     def Nombre(self,nombre):
         self.nombre = nombre
     def NoTerminales(self, nt):
@@ -365,6 +370,9 @@ class Gramatica:
         self.producciones.append(prod)
     def Prod_sin_rec(self, p):
         self.prod_sin_rec.append(p)
+    def Automata(self, est, alf):
+        self.afd.Estados(est)
+        self.afd.Alfabeto(alf)
     def ToString(self):
         print('Nombre: '+self.nombre)
         print('No terminales: ',self.no_terminales)
@@ -664,9 +672,12 @@ class MenuGramatica:
                     return True
         
 class Cadenas:
+    
     def __init__(self):
-        nombre_cadena = ""
-        print("Clase cadenas")
+        self.tipo = ''
+        self.nombre_eleccion = ''
+        self.posicion = 0
+        print('Clase cadenas')
         self.opcion_cadenas = {
             "1" : self.validar,
             "2" : self.ruta,
@@ -674,37 +685,184 @@ class Cadenas:
             "4" : self.ayuda,
             "5" : self.back           
         } 
-    def menu_cadenas(self):
-        os.system ("cls") 
-        nombre_cadena = input("Ingrese el nombre de la cadena: ")
-        os.system ("cls") 
-        while True:
-            print("""
-                *************** Menu Evaluar Cadenas ***************
+    
+    def menu_cadenas(self): 
+        self.nombre_eleccion = input("Ingrese el nombre del AFD o Gramática a evaluar: ")
+        estado = False
+        for x in range(0,len(ListaAFD)):
+            if self.nombre_eleccion == ListaAFD[x].nombre:
+                estado = True
+                self.tipo = 'automata'
+                self.posicion = x
+        for y in range(0,len(ListaGramatica)):
+            if self.nombre_eleccion == ListaGramatica[y].nombre:
+                estado = True
+                self.tipo = 'gramatica'
+                self.posicion = y
+        
+        if estado:
+            os.system ("cls") 
+            while True:
+                print("""
+                    *************** Menu Evaluar Cadenas ***************
 
-                1 Solo Validar
-                2 Ruta AFD
-                3 Expandir con Gramática
-                4 Ayuda
+                    1 Solo Validar
+                    2 Ruta AFD
+                    3 Expandir con Gramática
+                    4 Ayuda
 
-                5 Volver
+                    5 Volver
 
-                """)
-            eleccion = input("Escribe una opción: ")
-            accion = self.opcion_cadenas.get(eleccion)
-            if accion:
-                accion()
-                #break
-            else:
-                print("{0} no es una opción".format(eleccion))
+                    """)
+                eleccion = input("Escribe una opción: ")
+                accion = self.opcion_cadenas.get(eleccion)
+                if accion:
+                    accion()
+                else:
+                    print("{0} no es una opción".format(eleccion))
+        else:
+            print('El Afd o Gramatica ingresada no existe, intente nuevamente...')
+            self.menu_cadenas()
+    
     def validar(self):
-        print("validar")
+        cadena = input('Ingrese la cadena a evaluar: ')
+        if self.tipo == 'automata':
+            self.ValidarAutomata(self.posicion, cadena, False)
+        elif self.tipo == 'gramatica':
+            print('esgramatica')
+            #ValidarGramatica(self.posicion, cadena)
+
+    def ValidarAutomata(self, pos, cad, ruta):
+        estado = ''
+        #recorre los estados del afd seleccionado
+        for e in ListaAFD[pos].estados:
+            if e.inicial == True:
+                #declara estado inicial
+                estado = e.nombre
+        #recorre la cadena
+        for x in cad:
+            #entra a ciclo para verificar que exista en alfabeto
+            comprobador_alfabeto = False
+            for a in ListaAFD[pos].alfabeto:
+                if x == a:
+                    comprobador_alfabeto = True
+            if comprobador_alfabeto:
+                #recorre los estados
+                for l in ListaAFD[pos].estados:
+                    #estado actual igual al estado del afd
+                    if estado == l.nombre:
+                        #recorre las transiciones del estado
+                        for t in l.transiciones:
+                            if x == t.simbolo:
+                                #imprime si hay que mostrar ruta
+                                if ruta:
+                                    print(f'{estado},{t.destino};{x}')
+                                #asigna nuevo estado
+                                estado = t.destino
+                                break
+                        break   
+            else: 
+                estado = ''
+                break          
+        #verifica estado de confirmacion
+        comp = False
+        for k in ListaAFD[pos].estados:
+            if k.nombre == estado and k.aceptacion == True:
+                comp = True
+        if comp:
+            print('La cadena es valida!')
+            #return True
+        else:
+            print('La cadena es incorrecta!')  
+            #return False   
+
     def ruta(self):
-        print("ruta")
+        cadena = input('Ingrese la cadena a expandir: ')
+        if self.tipo == 'automata':
+            print('Ruta en AFD: ')
+            self.ValidarAutomata(self.posicion, cadena, True)
+        elif self.tipo == 'gramatica':
+            print('esgramatica')
+
     def expandir(self):
-        print("expandir")
+        cadena = input('Ingrese la cadena a expandir: ')
+        if self.tipo == 'automata':
+            self.ExpandirCadena(self.TransformarAutomata(self.posicion), cadena)
+        elif self.tipo == 'gramatica':
+            print('esgramatica')
+
+    def TransformarAutomata(self, pos):
+        #vector temporal
+        gramatica = []
+
+        #se recorren los estados
+        for x in ListaAFD[pos].estados:
+            temp = x.nombre+'>'
+            #se recorren las transiciones
+            for y in range(0,len(x.transiciones)):
+                #si es el ultimo
+                if y == (len(x.transiciones)-1):
+                    temp = temp + x.transiciones[y].simbolo + ' ' + x.transiciones[y].destino
+                else:
+                    temp = temp + x.transiciones[y].simbolo + ' ' + x.transiciones[y].destino + ' | '
+            #si es estado de aceptacion se le agrega epsilon
+            if x.aceptacion:
+                temp = temp + ' | epsilon'
+            gramatica.append(temp)
+
+        print('AFD transformado a gramática: ')
+        for g in gramatica:
+            print(g)
+        ListaAFD[pos].Gramatica(gramatica)
+        return gramatica
+        
+    def ExpandirCadena(self, trans, cad):
+        print('Expansión en gramática: ')
+        estado = trans[0].split('>')[0]
+        print(estado + ' --> ')
+        letra = ''
+        #recorre letra de cadena
+        for c in cad:
+            #comprueba que el valor exista
+            status = False
+            for m in trans:
+                for o in m.split('>')[1].split(' | '):
+                    if c == o.split(' ')[0]:
+                        status = True
+            if status:
+                #recorre prod de trans
+                for t in trans:
+                    #si estado es de prod
+                    if estado == t.split('>')[0]:
+                        for n in t.split('>')[1].split(' | '):
+                            if n.split(' ')[0] == c:
+                                z = n.split(' ')[1]
+                                #print()
+                                letra = letra + c
+                                print(f'{letra} {z}')
+                                #asigna nuevo estado
+                                estado = z
+                                break
+                        break
+            else:
+                print('Cadena invalida!')
+                estado = ''
+
+        value = False
+        for m in trans:
+            if m.split('>')[0] == estado:
+                for i in m.split('>')[1].split(' | '):
+                    if i == 'epsilon':
+                        value = True
+        if value:
+            print(letra + ' epsilon --> '+ letra)
+            print('Cadena valida!')
+        else:
+            print('Cadena invalida!')
+        
     def ayuda(self):
         print("ayuda")
+
     def back(self):
         os.system ("cls")
         Menu().run()
