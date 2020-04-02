@@ -118,9 +118,12 @@ class Automata:
         self.estados = []
         self.alfabeto = []
         self.gram = []
-        self.cadena = []
-    def Cadena(self, cadena):
-        self.cadena.append(cadena)
+        self.cadenav = []
+        self.cadenai = []
+    def CadenaV(self, cadena):
+        self.cadenav.append(cadena)
+    def CadenaI(self, cadena):
+        self.cadenai.append(cadena)
     def Nombre(self, nombre):
         self.nombre = nombre
     def Alfabeto(self, alfabeto):
@@ -349,9 +352,10 @@ class AFD:
         print('aqui va el modo 1')
 
     def ayuda(self):
-        print("ayuda")
-        for x in ListaAFD:
-            print(x.ToString())
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
+       
 
     def back(self):
         os.system ("cls")
@@ -366,9 +370,12 @@ class Gramatica:
         self.producciones = []
         self.prod_sin_rec = []
         self.afd = Automata()
-        self.cadena = []
-    def Cadena(self, cadena):
-        self.cadena.append(cadena)
+        self.cadenav = []
+        self.cadenai = []
+    def CadenaV(self, cadena):
+        self.cadenav.append(cadena)
+    def CadenaI(self, cadena):
+        self.cadenai.append(cadena)
     def Nombre(self,nombre):
         self.nombre = nombre
     def NoTerminales(self, nt):
@@ -536,8 +543,10 @@ class MenuGramatica:
             self.AgregarProd(gramatica_temporal, produccion_temporal)
 
     def Transformada(self):
-        self.gram.prod_sin_rec = self.gram.producciones.copy()
-        #self.gram.prod_sin_rec = self.gram.producciones[:]
+        # self.gram.prod_sin_rec = []
+        # self.gram.prod_sin_rec.extend(self.gram.producciones)
+        self.gram.prod_sin_rec = self.gram.producciones[:]
+        
         estado = True
         #recorre las producciones de la gramatica
         for z in self.gram.producciones:
@@ -562,8 +571,9 @@ class MenuGramatica:
                 print(y)
 
     def ayuda(self):
-        for x in ListaGramatica:
-            print(x.ToString())
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
 
     def back(self):
         os.system ("cls")
@@ -881,14 +891,17 @@ class Cadenas:
                 comp = True
         if comp:
             print('La cadena es valida!')
+            ListaAFD[self.posicion].CadenaV(cad)
 
         else:
             print('La cadena es incorrecta!')
+            ListaAFD[self.posicion].CadenaI(cad)
 
     def ValidarGramatica(self, trans, cad, exp):
         print('Expansión en gramática: ')
         alfabeto_temporal = []
         for m in trans:
+            
             for n in m.split('>')[1].split(' '):
                 alfabeto_temporal.append(n)
 
@@ -930,11 +943,15 @@ class Cadenas:
         if value:
             print(letra + ' epsilon --> '+ letra)
             print('Cadena valida!')
+            ListaGramatica[self.posicion].CadenaV(cad)
         else:
             print('Cadena invalida!')
+            ListaGramatica[self.posicion].CadenaI(cad)
 
     def ayuda(self):
-        print("ayuda")
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
 
     def back(self):
         os.system ("cls")
@@ -1127,13 +1144,16 @@ class Cargar:
                 if pas:
                     new_gram.Producciones(g.split('\n')[0])
             ListaGramatica.append(new_gram)
+            new_gram.ToString()
             print('El archivo se ha cargado!')
-
+#prod_sin_rec
         except:
             print('la cadena contiene valores erroneos..')
 
     def ayuda(self):
-        print("ayuda")
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
 
     def back(self):
         os.system ("cls")
@@ -1156,6 +1176,7 @@ class Guardar:
                     for t in e.transiciones:
                          archivo2.write(f'{e.nombre},{t.destino},{t.simbolo};{e.inicial},{e.aceptacion}'+'\n')
                 archivo2.close()
+                input('El archivo se ha Guardado, presione enter para continuar..')
 
         for g in ListaGramatica:
             if g.nombre == self.nombre:
@@ -1163,13 +1184,17 @@ class Guardar:
                 for s in g.producciones:
                     archivo2.write(s+'\n')
                 archivo2.close()
+                input('El archivo se ha Guardado, presione enter para continuar..')
         os.system ("cls")
         Menu().run()
 
 
 
     def ayuda(self):
-        print("ayuda")
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
+
     def back(self):
         os.system ("cls")
         Menu().run()
@@ -1248,19 +1273,39 @@ class Reportes:
             for d in ListaAFD:
                 if d.nombre == self.nombre:
                     for e in d.estados:
-
                         #se crean los estados
                         dot.node(e.nombre, e.nombre)
                         for t in e.transiciones:
                             #se crean las transiciones
                             dot.edge(e.nombre, t.destino, label=t.simbolo)
+                    dot.node('text',d.nombre)
+                    print('El grafo se ha creado!')
+                    #se crea el pdf
+                    dot.render(d.nombre)
 
-                dot.attr('node', shape='square')
-                dot.node('text',d.nombre)
+                    #imprime gramaticas
+                    k = 790
+                    c = canvas.Canvas(f"{d.nombre}-Gramaticas.pdf", pagesize=A4)
+                    c.drawString(50,k, 'Gramatica')
+                    
+                    for j in range(0,len(d.gram)):
+                        c.drawString(50, k - (j+1)*15, d.gram[j])
 
-                print('El grafo se ha creado!')
-                #se crea el pdf
-                dot.render(d.nombre)
+                    i = 650
+                    c.drawString(50,i, 'Cadenas validas:')
+                    for j in range(0,len(d.cadenav)):
+                        c.drawString(50, i - (j+1)*15, d.cadenav[j])
+                    
+                    l = 520
+                    c.drawString(50,l, 'Cadenas invalidas:')
+                    for j in range(0,len(d.cadenai)):
+                        c.drawString(50, l - (j+1)*15, d.cadenai[j])
+
+                    c.showPage()
+                    c.save()
+
+
+        
 
         if self.tipo == 'gramatica':
             for d in ListaGramatica:
@@ -1271,9 +1316,35 @@ class Reportes:
                         for t in e.transiciones:
                             #se crean las transiciones
                             dot.edge(e.nombre, t.destino, label=t.simbolo)
-                print('El grafo se ha creado!')
-                #se crea el pdf
-                dot.render(d.nombre)
+                    print('El grafo se ha creado!')
+                    #se crea el pdf
+                    dot.render(d.nombre)
+
+                    #imprime gramaticas
+                    k = 790
+                    c = canvas.Canvas(f"{d.nombre}-Gramaticas.pdf", pagesize=A4)
+                    c.drawString(50,k, 'Gramática:')
+                    for j in range(0,len(d.producciones)):
+                        c.drawString(50, k - (j+1)*15, d.producciones[j])
+                    
+                    h = 650
+                    c.drawString(50,h, 'Gramática sin recursividad a la izquierda:')
+                    for j in range(0,len(d.prod_sin_rec)):
+                        c.drawString(50, h - (j+1)*15, d.prod_sin_rec[j])
+                    
+                    i = 520
+                    c.drawString(50,i, 'Cadenas validas:')
+                    for j in range(0,len(d.cadenav)):
+                        c.drawString(50, i - (j+1)*15, d.cadenav[j])
+                    
+                    l = 350
+                    c.drawString(50,l, 'Cadenas invalidas:')
+                    for j in range(0,len(d.cadenai)):
+                        c.drawString(50, l - (j+1)*15, d.cadenai[j])
+                        
+                
+                    c.showPage()
+                    c.save()
 
     def TransformarAutomata(self, pos):
             #vector temporal
@@ -1400,7 +1471,9 @@ class Reportes:
                 gram.prod_sin_rec.insert(p, first_cadena)
 
     def ayuda(self):
-        print("ayuda")
+        print('Lenguajes Formales y de Programacion A+')
+        print('Aux: Elmer Real')
+        print('0')
 
     def back(self):
         os.system ("cls")
